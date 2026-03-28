@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperVax - Adenovirus Konstruksiyasi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <button id="mute-btn" class="mute-btn">🔊 Ovoz yoqilgan</button>
+
+  <div class="logo-container">
+    <img src="logo.png" alt="HyperVax Logo" class="logo">
+  </div>
+
+  <div class="scrolly-container">
+    <div class="sticky-container">
+      <canvas id="scrolly-canvas"></canvas>
+    </div>
+
+    <div class="text-sections">
+
+      <section class="step" data-start="0" data-end="10">
+        <div class="text-block">
+          <h2>HyperVax Platformasi</h2>
+          <p>Innovatsion vektor vaksinasining 3D taqdimoti.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="10" data-end="20">
+        <div class="text-block">
+          <h2>Adenovirus Aylanishi</h2>
+          <p>Virusning tashqi qobig'i va geometrik tuzilishini kuzating.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="20" data-end="30">
+        <div class="text-block">
+          <h2>Adenovirus Konstruksiyasi</h2>
+          <p>Virusning murakkab ichki geometrik tuzilishi bilan tanishing.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="30" data-end="40">
+        <div class="text-block">
+          <h2>Virusni tozalash (1-qism)</h2>
+          <p>Kapsid zarralari qismlarga ajralishni boshlaydi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="40" data-end="50">
+        <div class="text-block">
+          <h2>Virusni tozalash (2-qism)</h2>
+          <p>Kapsid ichidagi genetik material to'liq olib tashlanadi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="50" data-end="60">
+        <div class="text-block">
+          <h2>Vektor-konstruksiya Yaratish</h2>
+          <p>Bo'sh qobiq Angiotensin II oqsillari bilan qoplanadi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="60" data-end="70">
+        <div class="text-block">
+          <h2>Vaksinatsiya Jarayoni</h2>
+          <p>Tayyor vektorlar organizmga yuboriladi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="70" data-end="80">
+        <div class="text-block">
+          <h2>Hujayra bilan tutashish</h2>
+          <p>Vektor o'z yukini hujayraga yaqinlashtiradi va qobiq bilan tutashadi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="80" data-end="90">
+        <div class="text-block">
+          <h2>Hujayra ichiga yetkazib berish</h2>
+          <p>Genetik material yadro sari ishonchli tarzda yetkaziladi.</p>
+        </div>
+      </section>
+
+      <section class="step" data-start="90" data-end="100">
+        <div class="text-block">
+          <h2>Immunitet Javobi</h2>
+          <p>Organizm zararli S-oqsillarni tanib, antitelalar ishlab chiqaradi.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Hidden audio sources (MP4 used directly as audio) -->
+  <audio id="audio-01_adenovirus_aylanishi" src="sounds/01_adenovirus_aylanishi.mp4" preload="auto"></audio>
+  <audio id="audio-02_adenovirus_tuzilishi" src="sounds/02_adenovirus_tuzilishi.mp4" preload="auto"></audio>
+  <audio id="audio-03_virusni_tozalash" src="sounds/03_virusni_tozalash.mp4" preload="auto"></audio>
+  <audio id="audio-04_virusni_tozalash" src="sounds/04_virusni_tozalash.mp4" preload="auto"></audio>
+  <audio id="audio-05_vektor_qoplash" src="sounds/05_vektor_qoplash.mp4" preload="auto"></audio>
+  <audio id="audio-06_vaksina_yuborish" src="sounds/06_vaksina_yuborish.mp4" preload="auto"></audio>
+  <audio id="audio-07_hujayra_ichiga" src="sounds/07_hujayra_ichiga.mp4" preload="auto"></audio>
+  <audio id="audio-08_hujayra_ichiga" src="sounds/08_hujayra_ichiga.mp4" preload="auto"></audio>
+  <audio id="audio-09_antitelalar_javobi" src="sounds/09_antitelalar_javobi.mp4" preload="auto"></audio>
+
+  <script src="frames_data.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
