@@ -241,6 +241,34 @@ function renderLoop() {
   }
 }
 
+// Smart Background Preloader for ultra-smooth internet scrolling (Vercel/Production Fix)
+function preloadImagesInBackground() {
+  const allFrames = [];
+  sections.forEach(sec => {
+    if (framesData[sec.folder]) {
+       allFrames.push(...framesData[sec.folder]);
+    }
+  });
+  
+  let i = 0;
+  function loadNext() {
+    if (i >= allFrames.length) return;
+    const img = new Image();
+    img.src = allFrames[i];
+    
+    // As soon as one finishes, grab the next to avoid blasting the network/CPU all at once
+    img.onload = img.onerror = () => {
+      i++;
+      // Delay so main thread (scrolling/rendering) stays buttery smooth
+      setTimeout(loadNext, 5); 
+    };
+  }
+  
+  // Start silently in background after 1 sekund (letting the first frames render instantly first)
+  setTimeout(loadNext, 1000);
+}
+preloadImagesInBackground();
+
 // Ensure clean start on page load/refresh
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
