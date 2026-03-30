@@ -168,20 +168,17 @@ function playSectionAudio(folderName, forceReplay = false) {
   if (!isAudioStarted) return;
   if (!forceReplay && lastPlayedFolder === folderName) return; 
   
-  if (currentPlayingAudio && currentPlayingAudio !== document.getElementById(`video-${folderName}`)) {
+  const currentAudio = document.getElementById(`audio-${folderName}`);
+  
+  if (currentPlayingAudio && currentPlayingAudio !== currentAudio) {
     currentPlayingAudio.pause();
-    // Do NOT reset currentTime for video scrubbing, just pause sound if needed
-    // Actually, for scrollytelling videos, we keep them paused and just scrub currentTime
+    currentPlayingAudio.currentTime = 0;
   }
   
-  const videoElement = document.getElementById(`video-${folderName}`);
-  if (videoElement) {
-    currentPlayingAudio = videoElement;
+  if (currentAudio) {
+    currentPlayingAudio = currentAudio;
     currentPlayingAudio.muted = isMuted;
     
-    // We don't "play" the video in the traditional sense for scrollytelling, 
-    // but we need it to be "playing" or "active" for audio if there's sound.
-    // However, scrubbing works best when paused or carefully managed.
     let playPromise = currentPlayingAudio.play();
     if (playPromise !== undefined) {
       playPromise.then(() => {
@@ -242,12 +239,18 @@ function renderLoop() {
     // Video-based scrubbing for Virus sections
     const video = document.getElementById(`video-${section.folder}`);
     if (video && video.readyState >= 2) {
-      // Smoothly interpolate time for better Safari feel
       const maxFrameIndex = (framesData[section.folder] || {length: 100}).length;
       const progress = currentFrameIndex / (maxFrameIndex - 1);
-      
       const targetTime = progress * video.duration;
-      video.currentTime = targetTime;
+      
+      // OPTIMIZATION: Only seek if not already seeking and the difference is significant
+      if (!video.seeking && Math.abs(video.currentTime - targetTime) > 0.04) {
+        if (video.fastSeek) {
+          video.fastSeek(targetTime);
+        } else {
+          video.currentTime = targetTime;
+        }
+      }
       
       const scale = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
       const w = video.videoWidth * scale;
