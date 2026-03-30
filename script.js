@@ -166,25 +166,27 @@ muteBtn.addEventListener("click", () => {
 
 function playSectionAudio(folderName, forceReplay = false) {
   if (!isAudioStarted) return;
-  if (!forceReplay && lastPlayedFolder === folderName) return; 
+  if (!forceReplay && lastPlayedFolder === folderName) return; // Prevent restarting same audio
   
-  const currentAudio = document.getElementById(`audio-${folderName}`);
-  
-  if (currentPlayingAudio && currentPlayingAudio !== currentAudio) {
+  // Pause any currently playing audio
+  if (currentPlayingAudio && currentPlayingAudio !== document.getElementById(`audio-${folderName}`)) {
     currentPlayingAudio.pause();
     currentPlayingAudio.currentTime = 0;
   }
   
-  if (currentAudio) {
-    currentPlayingAudio = currentAudio;
+  const audioElement = document.getElementById(`audio-${folderName}`);
+  if (audioElement) {
+    currentPlayingAudio = audioElement;
     currentPlayingAudio.muted = isMuted;
     
+    // Play the audio
     let playPromise = currentPlayingAudio.play();
     if (playPromise !== undefined) {
       playPromise.then(() => {
         lastPlayedFolder = folderName;
       }).catch(error => {
-        lastPlayedFolder = ""; 
+        console.warn("Autoplay was prevented:", error);
+        lastPlayedFolder = ""; // Ruxsat berilmagan bo'lsa, qayta urinish uchun tozalaymiz
       });
     } else {
       lastPlayedFolder = folderName;
@@ -192,83 +194,80 @@ function playSectionAudio(folderName, forceReplay = false) {
   }
 }
 
-let targetVideoTime = 0;
-let currentVideoTime = 0;
-
 function renderLoop() {
   requestAnimationFrame(renderLoop);
 
+  // Auto-scroll the page if not manually interacting
   if (!isManualScrolling && isAudioStarted) {
     window.scrollBy(0, 3);
   }
 
-  const section = sections[targetSectionIndex];
-  
   if (currentSectionIndex !== targetSectionIndex) {
     currentSectionIndex = targetSectionIndex;
-    currentFrameIndex = targetFrameIndex;
-    playSectionAudio(section.folder);
+    currentFrameIndex = targetFrameIndex; 
+    
+    // Trigger audio change when section strictly changes
+    playSectionAudio(sections[currentSectionIndex].folder);
   } else {
     currentFrameIndex += (targetFrameIndex - currentFrameIndex) * 0.1;
   }
   
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const section = sections[currentSectionIndex];
+  const frames = framesData[section.folder];
+  
+  if (!frames || frames.length === 0) return;
 
-  if (section.folder === "logo") {
-    // Frame-based rendering for Logo
-    const frames = framesData[section.folder];
-    if (!frames || frames.length === 0) return;
-
-    let drawIndex = Math.round(currentFrameIndex);
-    if (drawIndex < 0) drawIndex = 0;
-    if (drawIndex >= frames.length) drawIndex = frames.length - 1;
+  let drawIndex = Math.round(currentFrameIndex);
+  if (drawIndex < 0) drawIndex = 0;
+  if (drawIndex >= frames.length) drawIndex = frames.length - 1;
+  
+  const desiredSrc = frames[drawIndex];
+  
+  if (renderImage.getAttribute("data-src") !== desiredSrc) {
+    renderImage.src = desiredSrc;
+    renderImage.setAttribute("data-src", desiredSrc);
+  }
+  
+  if (renderImage.complete && renderImage.width > 0) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    const desiredSrc = frames[drawIndex];
-    if (renderImage.getAttribute("data-src") !== desiredSrc) {
-      renderImage.src = desiredSrc;
-      renderImage.setAttribute("data-src", desiredSrc);
-    }
+    const scale = Math.max(canvas.width / renderImage.width, canvas.height / renderImage.height);
+    const w = renderImage.width * scale;
+    const h = renderImage.height * scale;
+    const offsetX = (canvas.width - w) / 2;
+    const offsetY = (canvas.height - h) / 2;
     
-    if (renderImage.complete && renderImage.width > 0) {
-      const scale = Math.max(canvas.width / renderImage.width, canvas.height / renderImage.height);
-      const w = renderImage.width * scale;
-      const h = renderImage.height * scale;
-      ctx.drawImage(renderImage, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-    }
-  } else {
-    // Video-based scrubbing for Virus sections
-    const video = document.getElementById(`video-${section.folder}`);
-    if (video && video.readyState >= 2) {
-      const maxFrameIndex = (framesData[section.folder] || {length: 100}).length;
-      const progress = currentFrameIndex / (maxFrameIndex - 1);
-      const targetTime = progress * video.duration;
-      
-      // OPTIMIZATION: Only seek if not already seeking and the difference is significant
-      if (!video.seeking && Math.abs(video.currentTime - targetTime) > 0.04) {
-        if (video.fastSeek) {
-          video.fastSeek(targetTime);
-        } else {
-          video.currentTime = targetTime;
-        }
-      }
-      
-      const scale = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
-      const w = video.videoWidth * scale;
-      const h = video.videoHeight * scale;
-      ctx.drawImage(video, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-    }
+    ctx.drawImage(renderImage, offsetX, offsetY, w, h);
   }
 }
 
-// Background preloader only for Logo (others use Video native preloading)
-function preloadLogoFrames() {
-  const logoFrames = framesData["logo"] || [];
-  logoFrames.forEach(src => {
-    const img = new Image();
-    img.src = src;
+// Smart Background Preloader for ultra-smooth internet scrolling (Vercel/Production Fix)
+function preloadImagesInBackground() {
+  const allFrames = [];
+  sections.forEach(sec => {
+    if (framesData[sec.folder]) {
+       allFrames.push(...framesData[sec.folder]);
+    }
   });
+  
+  let i = 0;
+  function loadNext() {
+    if (i >= allFrames.length) return;
+    const img = new Image();
+    img.src = allFrames[i];
+    
+    // As soon as one finishes, grab the next to avoid blasting the network/CPU all at once
+    img.onload = img.onerror = () => {
+      i++;
+      // Delay so main thread (scrolling/rendering) stays buttery smooth
+      setTimeout(loadNext, 5); 
+    };
+  }
+  
+  // Start silently in background after 1 sekund (letting the first frames render instantly first)
+  setTimeout(loadNext, 1000);
 }
-preloadLogoFrames();
+preloadImagesInBackground();
 
 // Ensure clean start on page load/refresh
 if ('scrollRestoration' in history) {
